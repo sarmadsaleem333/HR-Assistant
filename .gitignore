@@ -1,0 +1,9 @@
+data/cleaned/
+data/raw/
+data/json/
+data/text/
+docs/
+
+.env
+__pycache__/
+.ipynb_checkpoints/
