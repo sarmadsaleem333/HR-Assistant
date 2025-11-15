@@ -1,8 +1,13 @@
-data/cleaned/
-data/raw/
-data/json/
-data/text/
-docs/
+data/cleaned/*
+data/raw/*
+data/text/*
+data/json/*
+docs/*
+
+!data/cleaned/
+!data/raw/
+!data/text/
+!docs/
 
 .env
 __pycache__/
