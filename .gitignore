@@ -1,14 +1,8 @@
-data/cleaned/*
-data/raw/*
-data/text/*
-data/json/*
-docs/*
 
-!data/cleaned/
-!data/raw/
-!data/text/
-!docs/
 
 .env
 __pycache__/
 .ipynb_checkpoints/
+cvs_data/raw_cvs/*
+cvs_data/json/*
+logs/*
