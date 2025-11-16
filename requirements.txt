@@ -7,3 +7,4 @@ langdetect
 google-genai
 PyMuPDF
 python-dotenv
+tqdm
