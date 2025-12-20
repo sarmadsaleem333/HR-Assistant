@@ -2,14 +2,21 @@
   "degree_levels": {
     "phd": 1.0,
     "master": 0.8,
-    "bachelor": 0.6
+    "bachelor": 0.6,
+    "diploma": 0.4
   },
   "university_tiers": {
     "MIT": 1.0,
-    "Stanford": 0.95
+    "Stanford": 0.95,
+    "Harvard": 0.95,
+    "Oxford": 0.9,
+    "Cambridge": 0.9
   },
   "journal_impact": {
     "Nature": 1.0,
-    "IEEE": 0.7
+    "Science": 0.95,
+    "IEEE": 0.7,
+    "ACM": 0.65,
+    "Elsevier": 0.6
   }
 }

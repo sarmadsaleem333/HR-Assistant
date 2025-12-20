@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from app.api import router
 
 app = FastAPI(
-    title="CV Ranking API",
+    title="HR Assistant for CV Ranking",
     version="1.0.0"
 )
 
