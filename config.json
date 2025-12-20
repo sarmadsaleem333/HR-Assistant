@@ -1,0 +1,25 @@
+{
+  "weights": {
+    "education": 0.3,
+    "experience": 0.4,
+    "publications": 0.2,
+    "awards": 0.05,
+    "coherence": 0.05
+  },
+  "subweights": {
+    "education": {
+      "degree_level": 0.5,
+      "university_tier": 0.3,
+      "gpa": 0.2
+    },
+    "experience": {
+      "duration_months": 0.7,
+      "domain_match": 0.3
+    }
+  },
+  "policies": {
+    "min_months_experience": 60,
+    "target_domain": "AI",
+    "missing_value_penalty": 0.5
+  }
+}

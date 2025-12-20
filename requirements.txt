@@ -8,3 +8,4 @@ google-genai
 PyMuPDF
 python-dotenv
 tqdm
+fastapi[standard]

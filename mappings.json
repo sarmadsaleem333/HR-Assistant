@@ -1,0 +1,15 @@
+{
+  "degree_levels": {
+    "phd": 1.0,
+    "master": 0.8,
+    "bachelor": 0.6
+  },
+  "university_tiers": {
+    "MIT": 1.0,
+    "Stanford": 0.95
+  },
+  "journal_impact": {
+    "Nature": 1.0,
+    "IEEE": 0.7
+  }
+}
