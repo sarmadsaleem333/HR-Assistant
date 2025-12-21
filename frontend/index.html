@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>HR Assistant – CV Ranking</title>
+    <link rel="stylesheet" href="/static/style.css" />
+  </head>
+  <body>
+    <div class="container">
+      <h1>🤖 HR Assistant</h1>
+      <p class="subtitle">AI-powered CV Shortlisting & Ranking</p>
+
+      <div class="card">
+        <h2>Upload CVs</h2>
+
+        <form id="rankForm">
+          <label>CV ZIP (PDF/DOCX)</label>
+          <input type="file" id="zip" accept=".zip" required />
+
+          <label>Config JSON</label>
+          <textarea id="config" rows="8"></textarea>
+
+          <label>Mappings JSON</label>
+          <textarea id="mappings" rows="8"></textarea>
+
+          <button type="submit">✨ Rank Candidates</button>
+        </form>
+      </div>
+
+      <div id="results" class="hidden">
+        <h2>📊 Ranked Candidates</h2>
+        <div id="ranking"></div>
+
+        <h2>🧠 Why Top Candidate Wins</h2>
+        <div class="explanation" id="explanation"></div>
+      </div>
+    </div>
+
+    <script src="/static/app.js"></script>
+  </body>
+</html>
