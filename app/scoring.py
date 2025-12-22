@@ -30,7 +30,12 @@ def score_cv(cv, config, mappings):
         if p["domain"].lower() in exp.get("domain","").lower():
             domain = 1
     dur_score = min(months / p["min_months_experience_for_bonus"], 1)
-    exp_val = dur_score*sw["experience"]["duration_months"] + domain*sw["experience"]["domain_match"]
+    # Handle missing experience subweights
+    if "experience" in sw and "duration_months" in sw["experience"]:
+        exp_val = dur_score*sw["experience"]["duration_months"] + domain*sw["experience"].get("domain_match", 0.3)
+    else:
+        # Fallback if no experience subweights defined
+        exp_val = dur_score * 0.7 + (domain * 0.3 if domain else 0)
 
     # PUBLICATIONS
     best_pub = 0

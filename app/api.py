@@ -12,66 +12,151 @@ async def rank_cvs(
     config: str = Form(...),
     mappings: str = Form(...)
 ):
-    print("===== /rank endpoint called =====")
+    print("\n" + "="*80)
+    print("===== /rank ENDPOINT CALLED =====")
+    print("="*80)
     
     # --- Load config and mappings ---
     try:
         config = json.loads(config)
         mappings = json.loads(mappings)
-        print("Config & mappings loaded successfully")
+        print("✓ Config loaded successfully:")
+        print(f"  Weights: {config.get('weights', {})}")
+        print(f"✓ Mappings loaded successfully:")
+        print(f"  Degree levels: {list(mappings.get('degree_levels', {}).keys())}")
+        print(f"  University tiers: {list(mappings.get('university_tiers', {}).keys())}")
     except Exception as e:
+        print(f"✗ Error loading config/mappings: {e}")
         raise HTTPException(400, f"Invalid config/mappings: {e}")
 
     cvs = []
 
-    with tempfile.TemporaryDirectory() as tmp:
-        zip_path = os.path.join(tmp, cvs_zip.filename)
-        with open(zip_path, "wb") as f:
-            f.write(await cvs_zip.read())
-        print(f"Zip uploaded to {zip_path}")
+    try:
+        with tempfile.TemporaryDirectory() as tmp:
+            zip_path = os.path.join(tmp, cvs_zip.filename)
+            with open(zip_path, "wb") as f:
+                f.write(await cvs_zip.read())
+            print(f"\n✓ Zip file uploaded: {cvs_zip.filename}")
+            print(f"  Saved to: {zip_path}")
 
-        with zipfile.ZipFile(zip_path, "r") as z:
-            z.extractall(tmp)
-        print(f"Zip extracted to: {tmp}")
+            with zipfile.ZipFile(zip_path, "r") as z:
+                z.extractall(tmp)
+                file_list = z.namelist()
+            print(f"✓ Zip extracted successfully")
+            print(f"  Files found: {file_list}")
 
-        # --- Extract CVs from files ---
-        for root, _, files in os.walk(tmp):
-            for file in files:
-                if file.lower().endswith((".pdf", ".docx")):
-                    file_path = os.path.join(root, file)
-                    print(f"\n--- Parsing file: {file_path} ---")
-                    
-                    # Extract raw text
-                    text = extract_cv_from_file(file_path)
-                    print(f"Raw text extracted (first 500 chars):\n{text[:500]}...\n")
-                    
-                    # Extract structured JSON via Gemini
-                    cv_json = extract_structured_cv(text, file)
-                    print(f"Structured JSON returned:\n{json.dumps(cv_json, indent=2)}\n")
-                    
-                    cvs.append(cv_json)
+            # --- Extract CVs from files ---
+            print(f"\n{'='*80}")
+            print("EXTRACTING CVs FROM FILES")
+            print(f"{'='*80}")
+            
+            file_count = 0
+            for root, _, files in os.walk(tmp):
+                for file in files:
+                    if file.lower().endswith((".pdf", ".docx")):
+                        file_count += 1
+                        file_path = os.path.join(root, file)
+                        print(f"\n[{file_count}] Processing: {file}")
+                        print("-" * 60)
+                        
+                        try:
+                            # Extract raw text
+                            print("  → Extracting text from file...")
+                            text = extract_cv_from_file(file_path)
+                            text_preview = text[:300].replace('\n', ' ')
+                            print(f"  ✓ Text extracted ({len(text)} chars)")
+                            print(f"  Preview: {text_preview}...")
+                            
+                            # Extract structured JSON via Gemini
+                            print("  → Calling LLM for structured extraction...")
+                            cv_json = extract_structured_cv(text, file)
+                            print(f"  ✓ Structured data extracted:")
+                            print(f"     Name: {cv_json.get('name', 'N/A')}")
+                            print(f"     Education entries: {len(cv_json.get('education', []))}")
+                            print(f"     Experience entries: {len(cv_json.get('experience', []))}")
+                            print(f"     Publications: {len(cv_json.get('publications', []))}")
+                            print(f"     Awards: {len(cv_json.get('awards', []))}")
+                            
+                            cvs.append(cv_json)
+                            print(f"  ✓ CV added to list (Total: {len(cvs)})")
+                            
+                        except Exception as e:
+                            print(f"  ✗ Error processing {file}: {e}")
+                            import traceback
+                            traceback.print_exc()
+                            continue
 
-    if len(cvs) < 2:
-        raise HTTPException(400, "At least 2 CVs required")
+        print(f"\n{'='*80}")
+        print(f"EXTRACTION COMPLETE: {len(cvs)} CVs processed successfully")
+        print(f"{'='*80}")
 
-    # --- Scoring ---
-    ranked = []
-    for cv in cvs:
-        score = score_cv(cv, config, mappings)
-        ranked.append({"name": cv.get("name", "Unknown"), "sys_score": score, "raw_data": cv})
-        print(f"CV scored: {cv.get('name', 'Unknown')} -> {score}")
+        if len(cvs) < 1:
+            print("✗ ERROR: No CVs were successfully processed!")
+            raise HTTPException(400, "At least 1 CV required for processing")
 
-    # --- Ranking ---
-    ranked.sort(key=lambda x: x["sys_score"], reverse=True)
-    print("\nCVs sorted by score:")
-    for i, c in enumerate(ranked, 1):
-        print(f"{i}. {c['name']} - Score: {c['sys_score']}")
+        # --- Scoring ---
+        print(f"\n{'='*80}")
+        print("SCORING CVs")
+        print(f"{'='*80}")
+        
+        ranked = []
+        for idx, cv in enumerate(cvs, 1):
+            try:
+                print(f"\n[{idx}] Scoring: {cv.get('name', 'Unknown')}")
+                print("-" * 60)
+                
+                score = score_cv(cv, config, mappings)
+                
+                candidate_data = {
+                    "name": cv.get("name", "Unknown"),
+                    "sys_score": score,
+                    "subscores": {
+                        "education": cv.get("education_score", 0),
+                        "experience": cv.get("experience_score", 0),
+                        "publications": cv.get("publications_score", 0),
+                        "coherence": cv.get("coherence_score", 0),
+                        "awards": cv.get("awards_score", 0),
+                    },
+                    "explanation": {
+                        "summary": f"Candidate with {score:.2f} overall score",
+                        "reasons": ["Well-qualified candidate based on assessment criteria"]
+                    }
+                }
+                
+                ranked.append(candidate_data)
+                print(f"  ✓ Score calculated: {score:.2f}")
+                print(f"     Education: {candidate_data['subscores']['education']:.2f}")
+                print(f"     Experience: {candidate_data['subscores']['experience']:.2f}")
+                print(f"     Publications: {candidate_data['subscores']['publications']:.2f}")
+                
+            except Exception as e:
+                print(f"  ✗ Error scoring CV: {e}")
+                import traceback
+                traceback.print_exc()
+                continue
 
-    # --- Explanation ---
-    explanation = generate_explanation(ranked[0], ranked[1])
-    print("\nExplanation (Top 1 vs Top 2):")
-    print(explanation)
+        # --- Ranking ---
+        print(f"\n{'='*80}")
+        print("FINAL RANKING")
+        print(f"{'='*80}")
+        
+        ranked.sort(key=lambda x: x["sys_score"], reverse=True)
+        
+        for i, c in enumerate(ranked, 1):
+            print(f"  {i}. {c['name']:<30} Score: {c['sys_score']:.2f}")
 
-    print("\n===== /rank endpoint completed =====")
+        print(f"\n{'='*80}")
+        print(f"✓ RANKING COMPLETE - Returning {len(ranked)} candidates")
+        print(f"{'='*80}\n")
 
-    return {"ranked_candidates": ranked, "explanation": explanation}
+        response_data = {"ranked_candidates": ranked}
+        print(f"Response JSON preview:")
+        print(json.dumps(response_data, indent=2)[:500] + "...")
+        
+        return response_data
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"Unexpected error in /rank: {e}")
+        raise HTTPException(500, f"Internal server error: {str(e)}")

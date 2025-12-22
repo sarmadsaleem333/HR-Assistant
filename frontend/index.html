@@ -2,40 +2,456 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <title>HR Assistant – CV Ranking</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>HR Assistant – AI-Powered CV Ranking</title>
     <link rel="stylesheet" href="/static/style.css" />
   </head>
   <body>
-    <div class="container">
-      <h1>🤖 HR Assistant</h1>
-      <p class="subtitle">AI-powered CV Shortlisting & Ranking</p>
-
-      <div class="card">
-        <h2>Upload CVs</h2>
-
-        <form id="rankForm">
-          <label>CV ZIP (PDF/DOCX)</label>
-          <input type="file" id="zip" accept=".zip" required />
-
-          <label>Config JSON</label>
-          <textarea id="config" rows="8"></textarea>
-
-          <label>Mappings JSON</label>
-          <textarea id="mappings" rows="8"></textarea>
-
-          <button type="submit">✨ Rank Candidates</button>
-        </form>
+    <!-- Navigation Header -->
+    <header class="navbar">
+      <div class="navbar-container">
+        <div class="logo">
+          <span class="logo-icon">🤖</span>
+          <span class="logo-text">HR Assistant</span>
+        </div>
+        <nav class="nav-links">
+          <a href="#upload-section" class="nav-link">Upload</a>
+          <a href="#config-section" class="nav-link">Configure</a>
+          <a href="#resultsSection" class="nav-link">Results</a>
+        </nav>
       </div>
+    </header>
 
-      <div id="results" class="hidden">
-        <h2>📊 Ranked Candidates</h2>
-        <div id="ranking"></div>
+    <main class="main-content">
+      <!-- Hero Section -->
+      <section class="hero">
+        <div class="hero-content">
+          <h1>HR Assistant</h1>
+          <p class="hero-subtitle">
+            Intelligent CV Shortlisting & Ranking System
+          </p>
+          <p class="hero-description">
+            Powered by Large Language Models for transparent, auditable
+            candidate evaluation
+          </p>
+        </div>
+      </section>
 
-        <h2>🧠 Why Top Candidate Wins</h2>
-        <div class="explanation" id="explanation"></div>
+      <div class="container">
+        <!-- Upload Section -->
+        <section id="upload-section" class="section">
+          <div class="section-header">
+            <h2>📁 Step 1: Upload CVs</h2>
+            <p>Prepare a ZIP file containing PDF or DOCX documents</p>
+          </div>
+
+          <div class="card">
+            <div class="upload-area" id="dropZone">
+              <svg
+                class="upload-icon"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="17 8 12 3 7 8"></polyline>
+                <line x1="12" y1="3" x2="12" y2="15"></line>
+              </svg>
+              <p class="upload-text">Drag & drop your CV ZIP file here</p>
+              <p class="upload-subtext">or click to browse</p>
+              <input type="file" id="cvZip" accept=".zip" class="file-input" />
+            </div>
+            <div id="filePreview" class="file-preview hidden">
+              <p>✓ <span id="fileName"></span> selected</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- Configuration Section -->
+        <section id="config-section" class="section">
+          <div class="section-header">
+            <h2>⚙️ Step 2: Configure Scoring Weights</h2>
+            <p>Define how candidates are evaluated</p>
+          </div>
+
+          <div class="card">
+            <div class="config-tabs">
+              <button class="tab-button active" data-tab="weights">
+                Weight Distribution
+              </button>
+              <button class="tab-button" data-tab="subweights">
+                Sub-Weights
+              </button>
+              <button class="tab-button" data-tab="policies">Policies</button>
+            </div>
+
+            <div class="tab-content active" id="weights-tab">
+              <div class="weight-controls">
+                <div class="weight-item">
+                  <label for="education-weight">Education</label>
+                  <div class="weight-input-group">
+                    <input
+                      type="range"
+                      id="education-weight"
+                      class="weight-slider"
+                      min="0"
+                      max="100"
+                      value="30"
+                    />
+                    <span class="weight-value" id="education-value">30%</span>
+                  </div>
+                </div>
+                <div class="weight-item">
+                  <label for="experience-weight">Experience</label>
+                  <div class="weight-input-group">
+                    <input
+                      type="range"
+                      id="experience-weight"
+                      class="weight-slider"
+                      min="0"
+                      max="100"
+                      value="30"
+                    />
+                    <span class="weight-value" id="experience-value">30%</span>
+                  </div>
+                </div>
+                <div class="weight-item">
+                  <label for="publications-weight">Publications</label>
+                  <div class="weight-input-group">
+                    <input
+                      type="range"
+                      id="publications-weight"
+                      class="weight-slider"
+                      min="0"
+                      max="100"
+                      value="25"
+                    />
+                    <span class="weight-value" id="publications-value"
+                      >25%</span
+                    >
+                  </div>
+                </div>
+                <div class="weight-item">
+                  <label for="coherence-weight">Coherence</label>
+                  <div class="weight-input-group">
+                    <input
+                      type="range"
+                      id="coherence-weight"
+                      class="weight-slider"
+                      min="0"
+                      max="100"
+                      value="10"
+                    />
+                    <span class="weight-value" id="coherence-value">10%</span>
+                  </div>
+                </div>
+                <div class="weight-item">
+                  <label for="awards-weight">Awards & Other</label>
+                  <div class="weight-input-group">
+                    <input
+                      type="range"
+                      id="awards-weight"
+                      class="weight-slider"
+                      min="0"
+                      max="100"
+                      value="5"
+                    />
+                    <span class="weight-value" id="awards-value">5%</span>
+                  </div>
+                </div>
+              </div>
+              <div class="weight-total">
+                Total: <span id="total-weight">100</span>%
+              </div>
+            </div>
+
+            <div class="tab-content" id="subweights-tab">
+              <h4>Education Sub-Weights</h4>
+              <div class="weight-controls">
+                <div class="weight-item">
+                  <label for="edu-gpa">GPA Weight</label>
+                  <div class="weight-input-group">
+                    <input
+                      type="range"
+                      id="edu-gpa"
+                      class="subweight-slider"
+                      min="0"
+                      max="100"
+                      value="50"
+                    />
+                    <span class="weight-value" id="edu-gpa-value">50%</span>
+                  </div>
+                </div>
+                <div class="weight-item">
+                  <label for="edu-degree">Degree Level</label>
+                  <div class="weight-input-group">
+                    <input
+                      type="range"
+                      id="edu-degree"
+                      class="subweight-slider"
+                      min="0"
+                      max="100"
+                      value="20"
+                    />
+                    <span class="weight-value" id="edu-degree-value">20%</span>
+                  </div>
+                </div>
+                <div class="weight-item">
+                  <label for="edu-tier">University Tier</label>
+                  <div class="weight-input-group">
+                    <input
+                      type="range"
+                      id="edu-tier"
+                      class="subweight-slider"
+                      min="0"
+                      max="100"
+                      value="30"
+                    />
+                    <span class="weight-value" id="edu-tier-value">30%</span>
+                  </div>
+                </div>
+              </div>
+              <h4 style="margin-top: 30px">Publications Sub-Weights</h4>
+              <div class="weight-controls">
+                <div class="weight-item">
+                  <label for="pub-if">Impact Factor</label>
+                  <div class="weight-input-group">
+                    <input
+                      type="range"
+                      id="pub-if"
+                      class="subweight-slider"
+                      min="0"
+                      max="100"
+                      value="50"
+                    />
+                    <span class="weight-value" id="pub-if-value">50%</span>
+                  </div>
+                </div>
+                <div class="weight-item">
+                  <label for="pub-position">Author Position</label>
+                  <div class="weight-input-group">
+                    <input
+                      type="range"
+                      id="pub-position"
+                      class="subweight-slider"
+                      min="0"
+                      max="100"
+                      value="30"
+                    />
+                    <span class="weight-value" id="pub-position-value"
+                      >30%</span
+                    >
+                  </div>
+                </div>
+                <div class="weight-item">
+                  <label for="pub-venue">Venue Quality</label>
+                  <div class="weight-input-group">
+                    <input
+                      type="range"
+                      id="pub-venue"
+                      class="subweight-slider"
+                      min="0"
+                      max="100"
+                      value="20"
+                    />
+                    <span class="weight-value" id="pub-venue-value">20%</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="tab-content" id="policies-tab">
+              <div class="policy-item">
+                <label for="missing-penalty">Missing Values Penalty</label>
+                <input
+                  type="number"
+                  id="missing-penalty"
+                  min="0"
+                  max="1"
+                  step="0.01"
+                  value="0.10"
+                />
+              </div>
+              <div class="policy-item">
+                <label for="min-experience"
+                  >Min Months Experience for Bonus</label
+                >
+                <input
+                  type="number"
+                  id="min-experience"
+                  min="0"
+                  step="1"
+                  value="24"
+                />
+              </div>
+              <div class="policy-item">
+                <label for="domain">Target Domain</label>
+                <input
+                  type="text"
+                  id="domain"
+                  value="NLP"
+                  placeholder="e.g., NLP, ML, Data Science"
+                />
+              </div>
+              <div class="policy-item">
+                <label for="first-author-bonus">First Author Bonus</label>
+                <input
+                  type="number"
+                  id="first-author-bonus"
+                  min="0"
+                  max="1"
+                  step="0.01"
+                  value="0.15"
+                />
+              </div>
+            </div>
+
+            <div class="button-group">
+              <button class="btn btn-secondary" id="loadDefault">
+                ↻ Load Default Config
+              </button>
+              <button class="btn btn-secondary" id="loadCustom">
+                📋 Load Custom JSON
+              </button>
+            </div>
+          </div>
+
+          <!-- JSON Editor -->
+          <div class="card" style="margin-top: 20px">
+            <h3>📄 JSON Configuration Preview</h3>
+            <textarea
+              id="configJson"
+              rows="12"
+              readonly
+              class="json-preview"
+            ></textarea>
+            <div class="button-group">
+              <button class="btn btn-outline" id="copyConfig">
+                📋 Copy JSON
+              </button>
+            </div>
+          </div>
+        </section>
+
+        <!-- Submit Section -->
+        <section class="section">
+          <div class="card submit-card">
+            <h3>Ready to Rank?</h3>
+            <p>Review your configuration and submit for processing</p>
+            <button class="btn btn-primary btn-large" id="submitBtn" disabled>
+              <span class="btn-icon">✨</span>
+              <span>Rank Candidates</span>
+            </button>
+            <div id="loading" class="hidden">
+              <div class="spinner"></div>
+              <p>Processing CVs and generating rankings...</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- Results Section -->
+        <section id="resultsSection" class="section hidden">
+          <div class="section-header">
+            <h2>📊 Ranking Results</h2>
+            <p>Candidates ranked by composite score</p>
+          </div>
+
+          <!-- Results Summary -->
+          <div class="card">
+            <div class="summary-stats">
+              <div class="stat-box">
+                <p class="stat-label">Total Candidates</p>
+                <p class="stat-value" id="totalCandidates">0</p>
+              </div>
+              <div class="stat-box">
+                <p class="stat-label">Top Score</p>
+                <p class="stat-value" id="topScore">0.00</p>
+              </div>
+              <div class="stat-box">
+                <p class="stat-label">Average Score</p>
+                <p class="stat-value" id="avgScore">0.00</p>
+              </div>
+              <div class="stat-box">
+                <p class="stat-label">Score Range</p>
+                <p class="stat-value" id="scoreRange">0.00</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Ranked Candidates Table -->
+          <div class="card">
+            <h3>Ranked Candidates</h3>
+            <div class="table-wrapper">
+              <table class="results-table">
+                <thead>
+                  <tr>
+                    <th>Rank</th>
+                    <th>Candidate</th>
+                    <th>Overall Score</th>
+                    <th>Education</th>
+                    <th>Experience</th>
+                    <th>Publications</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="resultsTable"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Score Details Modal -->
+          <div id="detailsModal" class="modal hidden">
+            <div class="modal-content">
+              <button class="modal-close">&times;</button>
+              <h3 id="modalTitle">Candidate Details</h3>
+              <div id="modalBody"></div>
+              <div class="modal-actions">
+                <button class="btn btn-secondary modal-close-btn">Close</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Export Options -->
+          <div class="card">
+            <h3>📥 Export Results</h3>
+            <div class="button-group">
+              <button class="btn btn-secondary" id="downloadCSV">
+                Download CSV Report
+              </button>
+              <button class="btn btn-secondary" id="downloadJSON">
+                Download JSON Report
+              </button>
+              <button class="btn btn-secondary" id="printResults">
+                Print Results
+              </button>
+            </div>
+          </div>
+
+          <!-- Explanations -->
+          <div class="card">
+            <h3>🧠 Ranking Explanations</h3>
+            <div id="explanations" class="explanations-container"></div>
+          </div>
+
+          <!-- Start Over -->
+          <div class="card">
+            <button class="btn btn-outline btn-large" id="resetBtn">
+              ↻ Start Over
+            </button>
+          </div>
+        </section>
       </div>
-    </div>
+    </main>
 
-    <script src="/static/app.js"></script>
+    <!-- Footer -->
+    <footer class="footer">
+      <p>
+        CS417 Term Project • HR Assistant for CV Shortlisting & Quality Grading
+        • Spring 2025
+      </p>
+    </footer>
+
+    <script src="/static/script.js"></script>
   </body>
 </html>
